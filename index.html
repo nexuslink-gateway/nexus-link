@@ -84,41 +84,28 @@ body{background:var(--paper)!important;color:var(--ink);font-family:Manrope,Aria
 <script>
 (function(){
   "use strict";
-  var GIST_ID="c3537c2e402ac4f1e2c3846f89c7c842", FILE="acortador.json", CACHE="nexus-cloud-cache-v2";
+  var GIST_ID="c3537c2e402ac4f1e2c3846f89c7c842", FILE="acortador.json", CACHE="nexus-cloud-cache-v3", THEME="nexus-theme";
   var $=function(id){return document.getElementById(id)};
-  function norm(v){return decodeURIComponent(String(v||"")).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
+  function norm(v){try{v=decodeURIComponent(String(v||""))}catch(e){v=String(v||"")}return v.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
   function getSlug(){
-    var q=new URLSearchParams(location.search), value=q.get("g")||q.get("id")||"";
+    var q=new URLSearchParams(location.search),value=q.get("g")||q.get("id")||"";
     if(!value){q.forEach(function(v,k){if(!value&&v===""&&k!=="gist"&&k!=="file")value=k})}
     if(!value){var parts=location.pathname.split("/").filter(Boolean),last=parts[parts.length-1]||"";if(last&&!/\.html?$/i.test(last))value=last}
     if(!value)value=location.hash.slice(1);
     return norm(value);
   }
-  var slug=getSlug(), current=null, opened=false, checking=false, verified=false, countdownStarted=false;
+  function initTheme(){var saved="";try{saved=localStorage.getItem(THEME)||""}catch(e){}var dark=saved?saved==="dark":!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.dataset.theme=dark?"dark":"light";var b=$("theme");if(!b)return;function paint(){var isDark=document.documentElement.dataset.theme==="dark";b.textContent=isDark?"☀":"☾";b.setAttribute("aria-label",isDark?"Activar modo claro":"Activar modo oscuro");b.title=b.getAttribute("aria-label")}paint();b.onclick=function(){var next=document.documentElement.dataset.theme==="dark"?"light":"dark";document.documentElement.dataset.theme=next;try{localStorage.setItem(THEME,next)}catch(e){}paint()}}
+  var slug=getSlug(),current=null,opened=false,checking=false,verified=false,countdownStarted=false;
   function setText(id,value){var el=$(id);if(el)el.textContent=value||""}
   function youtubeId(v){var m=String(v||"").match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);return m?m[1]:""}
-  function showError(title,message){
-    current=null;$("download").disabled=true;setText("name",title);setText("subtitle",message);setText("buttonText","ENLACE NO DISPONIBLE");setText("buttonDetail","Revisa la dirección e inténtalo otra vez");
-    var old=document.querySelector(".load-error");if(!old){var box=document.createElement("div");box.className="load-error";box.innerHTML="<b></b><p></p>";$("download").before(box);old=box}old.querySelector("b").textContent=title;old.querySelector("p").textContent=message;
-  }
-  function apply(data){
-    var links=data&&Array.isArray(data.links)?data.links:[];
-    if(!slug){showError("Falta el nombre del juego","Abre el enlace generado desde el panel de control.");return false}
-    var item=links.find(function(x){return norm(x.slug)===slug&&x.active!==false});
-    if(!item){showError("Juego no encontrado","No existe una publicación activa para “"+slug+"”. No se abrirá otro juego por error.");return false}
-    if(!item.url){showError("Descarga no configurada","Este juego todavía no tiene un enlace final de descarga.");return false}
-    current=item;var err=document.querySelector(".load-error");if(err)err.remove();
-    setText("name",item.name||slug);setText("waitingGame",item.name||slug);setText("subtitle",item.subtitle||"");setText("buttonText",item.buttonText||("Descargar "+(item.name||"juego")));setText("buttonDetail",[item.name,item.subtitle].filter(Boolean).join(" · "));setText("description",item.description||"Publicado en Nexus Link.");
-    var cover=$("cover");if(item.image){cover.innerHTML='<img alt="Portada de '+String(item.name||"juego").replace(/"/g,"&quot;")+'">';cover.querySelector("img").src=item.image;cover.classList.add("show")}else{cover.innerHTML="";cover.classList.remove("show")}
-    var yt=youtubeId(item.videoUrl);if(item.videoEnabled&&yt){$("youtube").innerHTML='<iframe allowfullscreen title="Video de '+String(item.name||"juego").replace(/"/g,"&quot;")+'" src="https://www.youtube-nocookie.com/embed/'+yt+'"></iframe>';$("video").classList.add("show")}else{$("youtube").innerHTML="";$("video").classList.remove("show")}
-    document.title=(item.name||"Nexus Link")+" · Descarga segura";$("download").disabled=false;return true;
-  }
-  function readGist(){
-    setText("name","Cargando juego…");
-    return fetch("https://api.github.com/gists/"+GIST_ID+"?_="+Date.now(),{headers:{Accept:"application/vnd.github+json"},cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("No se pudo conectar");return r.json()}).then(function(g){var f=g.files&&(g.files[FILE]||g.files[Object.keys(g.files)[0]]);if(!f)throw new Error("Archivo no encontrado");return f.truncated&&f.raw_url?fetch(f.raw_url,{cache:"no-store"}).then(function(r){return r.text()}):f.content}).then(function(txt){var data=JSON.parse(txt);try{localStorage.setItem(CACHE,JSON.stringify(data))}catch(e){}apply(data)}).catch(function(){var cache=null;try{cache=JSON.parse(localStorage.getItem(CACHE)||"null")}catch(e){}if(!cache||!apply(cache))showError("No pudimos cargar el juego","Comprueba tu conexión e inténtalo nuevamente.")});
-  }
-  try{if(slug){var clean=location.pathname.replace(/[^\/]*$/,"")+"?"+encodeURIComponent(slug);if(location.search!=="?"+encodeURIComponent(slug))history.replaceState(null,"",clean)}}catch(e){}
-  $("download").disabled=true;readGist();
+  function showError(title,message){current=null;$("download").disabled=true;setText("name",title);setText("subtitle",message);setText("buttonText","ENLACE NO DISPONIBLE");setText("buttonDetail","Revisa la dirección e inténtalo otra vez");var old=document.querySelector(".load-error");if(!old){var box=document.createElement("div");box.className="load-error";box.innerHTML="<b></b><p></p>";$("download").before(box);old=box}old.querySelector("b").textContent=title;old.querySelector("p").textContent=message}
+  function showHome(){current=null;$("download").disabled=true;setText("name","Nexus Link");setText("subtitle","Abre una URL generada desde el panel para acceder a tu juego.");setText("buttonText","ESPERANDO ENLACE");setText("buttonDetail","Usa la dirección exacta compartida por joeldroidmods");var old=document.querySelector(".load-error");if(old)old.remove()}
+  function findItem(data){var links=data&&Array.isArray(data.links)?data.links:[];return links.find(function(x){return norm(x.slug||x.id||x.name)===slug&&x.active!==false})}
+  function applyItem(item){if(!item.url){showError("Descarga no configurada","Este juego todavía no tiene un enlace final de descarga.");return false}current=item;var err=document.querySelector(".load-error");if(err)err.remove();setText("name",item.name||slug);setText("waitingGame",item.name||slug);setText("subtitle",item.subtitle||"");setText("buttonText",item.buttonText||("Descargar "+(item.name||"juego")));setText("buttonDetail",[item.name,item.subtitle].filter(Boolean).join(" · "));setText("description",item.description||"Publicado en Nexus Link.");var cover=$("cover");if(item.image){cover.innerHTML='<img alt="Portada del juego">';cover.querySelector("img").src=item.image;cover.querySelector("img").alt="Portada de "+(item.name||"juego");cover.classList.add("show")}else{cover.innerHTML="";cover.classList.remove("show")}var yt=youtubeId(item.videoUrl);if(item.videoEnabled&&yt){$("youtube").innerHTML='<iframe allowfullscreen title="Video del juego" src="https://www.youtube-nocookie.com/embed/'+yt+'"></iframe>';$("video").classList.add("show")}else{$("youtube").innerHTML="";$("video").classList.remove("show")}document.title=(item.name||"Nexus Link")+" · Descarga segura";$("download").disabled=false;return true}
+  function gistData(){return fetch("https://api.github.com/gists/"+GIST_ID+"?nocache="+Date.now(),{headers:{Accept:"application/vnd.github+json"},cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("No se pudo conectar");return r.json()}).then(function(g){var f=g.files&&(g.files[FILE]||g.files[Object.keys(g.files)[0]]);if(!f)throw new Error("Archivo no encontrado");if(f.truncated&&f.raw_url)return fetch(f.raw_url+(f.raw_url.indexOf("?")<0?"?":"&")+"nocache="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("No se pudo leer");return r.text()}).then(JSON.parse);return JSON.parse(f.content)})}
+  function readPublished(attempt){setText("name",attempt?"Confirmando publicación…":"Cargando juego…");return gistData().then(function(data){try{localStorage.setItem(CACHE,JSON.stringify(data))}catch(e){}var item=findItem(data);if(item)return applyItem(item);if(attempt<2)return new Promise(function(resolve){setTimeout(resolve,900)}).then(function(){return readPublished(attempt+1)});showError("Enlace no disponible","Esta URL no corresponde a una publicación activa. Copia nuevamente la URL desde el panel.");return false}).catch(function(){var cached=null;try{cached=JSON.parse(localStorage.getItem(CACHE)||"null")}catch(e){}var item=findItem(cached);if(item)return applyItem(item);showError("No pudimos cargar el enlace","Comprueba tu conexión e inténtalo nuevamente.");return false})}
+  initTheme();
+  if(slug){try{var clean=location.pathname.replace(/[^\/]*$/,"")+"?g="+encodeURIComponent(slug);if(location.search!=="?g="+encodeURIComponent(slug))history.replaceState(null,"",clean)}catch(e){}$("download").disabled=true;readPublished(0)}else{showHome()}
   var vbox=$("vbox"),vcheck=$("vcheck");
   vbox.querySelector(".tap").textContent="TOCA AQUÍ PARA VERIFICAR";vbox.querySelector("b").textContent="NO SOY UN ROBOT";vbox.querySelector("small").textContent="Comprobación segura de 4 segundos";
   vbox.insertAdjacentHTML("afterend",'<div class="verify-progress" id="verifyProgress" aria-hidden="true"><i></i></div><button class="continue-action" id="continueAction" type="button">Continuar con la descarga →</button>');
