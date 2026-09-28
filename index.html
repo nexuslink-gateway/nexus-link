@@ -2,6 +2,14 @@
 
 <html data-theme="light" lang="es">
 <head>
+<script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
+
+<script type="text/javascript">
+    aclib.runAutoTag({
+        zoneId: 'ppt1kqwr60',
+    });
+</script>    
+    
 <meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
 <title>Nexus Link · Descarga segura</title>
 <meta content="Nexus Link entrega enlaces y archivos Android de forma clara y segura." name="description"/>
@@ -86,8 +94,6 @@ body{background:var(--paper)!important;color:var(--ink);font-family:Manrope,Aria
   "use strict";
   var GIST_ID="c3537c2e402ac4f1e2c3846f89c7c842", FILE="acortador.json", THEME="nexus-theme", refreshTimer=null, RETRY_DELAYS=[1000,1500,2200,3200,4800,7000];
   var $=function(id){return document.getElementById(id)};
-  var SMARTLINK_1="https://omg10.com/4/11901063",SMARTLINK_2="https://omg10.com/4/11901130",slShown={};
-  function openSmart(key,url){if(slShown[key])return false;slShown[key]=true;try{var w=window.open(url,"_blank");if(w){try{w.opener=null}catch(e){}}}catch(e){}return true}
   function norm(v){try{v=decodeURIComponent(String(v||""))}catch(e){v=String(v||"")}return v.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
   function getSlug(){
     var q=new URLSearchParams(location.search),value=q.get("g")||q.get("id")||"";
@@ -112,12 +118,12 @@ body{background:var(--paper)!important;color:var(--ink);font-family:Manrope,Aria
   vbox.querySelector(".tap").textContent="TOCA AQUÍ PARA VERIFICAR";vbox.querySelector("b").textContent="NO SOY UN ROBOT";vbox.querySelector("small").textContent="Comprobación segura de 4 segundos";
   vbox.insertAdjacentHTML("afterend",'<div class="verify-progress" id="verifyProgress" aria-hidden="true"><i></i></div><button class="continue-action" id="continueAction" type="button">Continuar con la descarga →</button>');
   $("countFace").insertAdjacentHTML("beforeend",'<div class="prep-track"><i id="prepBar"></i></div>');
-  $("download").onclick=function(){if(!current||opened)return;opened=true;var ad=String(current.popunderUrl||"").trim(),finalUrl=String(current.url||"").trim();openSmart("download",SMARTLINK_1);$("waiting").classList.add("open");document.body.style.overflow="hidden"};
-  function verify(){if(checking||verified)return;openSmart("verify",SMARTLINK_2);checking=true;vbox.classList.add("busy");vbox.querySelector(".tap").textContent="COMPROBANDO CONEXIÓN";vbox.querySelector("b").textContent="Verificando…";var elapsed=0,total=40,timer=setInterval(function(){elapsed++;$("verifyProgress").querySelector("i").style.width=(elapsed/total*100)+"%";vbox.querySelector("small").textContent="Conexión segura · "+Math.ceil((total-elapsed)/10)+" s";if(elapsed>=total){clearInterval(timer);checking=false;verified=true;vbox.classList.remove("busy");vbox.classList.add("verified-card");vcheck.classList.add("done");vbox.querySelector(".tap").textContent="VERIFICACIÓN COMPLETA";vbox.querySelector("b").textContent="Conexión segura";vbox.querySelector("small").textContent="Ya puedes continuar";$("dot2").classList.add("on");$("continueAction").classList.add("show")}},100)}
+  $("download").onclick=function(){if(!current||opened)return;opened=true;$("waiting").classList.add("open");document.body.style.overflow="hidden"};
+  function verify(){if(checking||verified)return;checking=true;vbox.classList.add("busy");vbox.querySelector(".tap").textContent="COMPROBANDO CONEXIÓN";vbox.querySelector("b").textContent="Verificando…";var elapsed=0,total=40,timer=setInterval(function(){elapsed++;$("verifyProgress").querySelector("i").style.width=(elapsed/total*100)+"%";vbox.querySelector("small").textContent="Conexión segura · "+Math.ceil((total-elapsed)/10)+" s";if(elapsed>=total){clearInterval(timer);checking=false;verified=true;vbox.classList.remove("busy");vbox.classList.add("verified-card");vcheck.classList.add("done");vbox.querySelector(".tap").textContent="VERIFICACIÓN COMPLETA";vbox.querySelector("b").textContent="Conexión segura";vbox.querySelector("small").textContent="Ya puedes continuar";$("dot2").classList.add("on");$("continueAction").classList.add("show")}},100)}
   vcheck.onclick=function(e){e.stopPropagation();verify()};vbox.onclick=verify;vbox.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();verify()}};
   $("continueAction").onclick=function(){if(!verified||countdownStarted)return;countdownStarted=true;$("stepVerify").classList.add("hidden");$("stepCount").classList.remove("hidden");$("dot3").classList.add("on");startCountdown()};
   function startCountdown(){var n=8;setText("count",n);setText("waitingGame",current.name||slug);$("prepBar").style.width="0%";$("ring").classList.remove("ready-state");setText("guide","Preparando "+(current.name||"tu juego")+". Faltan 8 segundos.");var timer=setInterval(function(){n--;setText("count",Math.max(n,0));$("prepBar").style.width=((8-n)/8*100)+"%";setText("guide",n>0?"Preparando "+(current.name||"tu juego")+". Faltan "+n+" segundos.":"¡"+(current.name||"Tu juego")+" está listo! Toca el botón verde para descargar.");if(n<=0){clearInterval(timer);$("ring").classList.add("ready-state");$("ready").classList.add("show");$("ready").disabled=false;$("ready").querySelector("strong").textContent=current.buttonText||("Descargar "+(current.name||"juego"))}},1000)}
-  $("ready").onclick=function(){if(!current||this.disabled||!this.classList.contains("show"))return;if(openSmart("final",SMARTLINK_1)){this.querySelector("span:last-child").textContent="Toca otra vez para abrir tu descarga";return}location.href=current.url};
+  $("ready").onclick=function(){if(!current||this.disabled||!this.classList.contains("show"))return;location.href=current.url};
   var legal={privacy:["Política de privacidad","Nexus Link procesa únicamente la información técnica necesaria para preparar los enlaces. Los sitios de destino tienen sus propias políticas."],terms:["Términos y condiciones","Nexus Link facilita el acceso a enlaces publicados por creadores asociados. Usa cada archivo bajo tu responsabilidad y respeta sus licencias."],report:["Reportar un archivo","Si un enlace está roto o parece inseguro, comunícate con joeldroidmods e incluye el nombre del juego."]};document.querySelectorAll("[data-legal]").forEach(function(b){b.onclick=function(){var x=legal[b.dataset.legal];setText("legalTitle",x[0]);$("legalBody").innerHTML="<p>"+x[1]+"</p>";$("legalOverlay").classList.add("open")}});$("close").onclick=function(){$("legalOverlay").classList.remove("open")};
 })();
 </script></body></html>
